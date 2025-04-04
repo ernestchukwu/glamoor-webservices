@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${GITHUB_URI}
+          username: ${GITHUB_USERNAME}
+          password: ${GITHUB_TOKEN}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh
+
+server:
+  port: 8888
+

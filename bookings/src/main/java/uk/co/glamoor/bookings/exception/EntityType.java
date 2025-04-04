@@ -1,0 +1,6 @@
+package uk.co.glamoor.bookings.exception;
+
+public enum EntityType {
+	STYLIST, CUSTOMER, AVAILABILITY, BOOKING, TIMESLOT, HOME_SERVICE_SPECIFICATION,
+	SERVICE_SPECIFICATION, SERVICE_PROVIDER
+}

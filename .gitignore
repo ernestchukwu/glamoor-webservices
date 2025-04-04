@@ -1,0 +1,13 @@
+
+data-generator/
+images/
+services/
+settings/
+static-resources/
+
+Info.docx
+~$Info.docx
+wait-for-it.sh
+docker-compose.yml
+
+.env
