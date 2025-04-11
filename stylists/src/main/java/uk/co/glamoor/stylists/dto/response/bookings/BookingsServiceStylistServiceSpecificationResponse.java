@@ -11,6 +11,7 @@ import java.util.List;
 public class BookingsServiceStylistServiceSpecificationResponse extends BookingsServiceServiceSpecificationResponse {
     private String id;
     private GlamoorService service;
+    private Integer minAdvanceBookingTimeMinutes;
     private List<AddonSpecification> addonSpecifications = new ArrayList<>();
 
     @EqualsAndHashCode(callSuper = true)

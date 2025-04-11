@@ -6,6 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import uk.co.glamoor.bookings.model.Booking;
 
 @Data
 public class BookingMessage {
@@ -20,7 +21,7 @@ public class BookingMessage {
 	private boolean homeService;
 	private List<StylistServiceSpecification> stylistServiceSpecifications = new ArrayList<>();
 	private String address;
-
+	private Booking.CancellationPolicy cancellationPolicy;
 
 	@Data
 	public static class User {

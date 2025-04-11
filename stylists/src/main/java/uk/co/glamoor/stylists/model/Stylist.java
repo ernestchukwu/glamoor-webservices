@@ -48,8 +48,8 @@ public class Stylist {
 	@GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
 	private Location location;
 	private String banner;
-	private Integer bookingCancellationTimeLimitMinutes;
-	private Integer bookingTimeLimitMinutes;
+	private CancellationPolicy cancellationPolicy;
+	private Integer minAdvanceBookingTimeMinutes;
 	private List<String> serviceCategories = new ArrayList<>();
 	@Indexed
 	private List<StylistServiceSpecification> serviceSpecifications = new ArrayList<>();
@@ -74,6 +74,12 @@ public class Stylist {
 			return fullName();
 		}
 		return alias;
+	}
+
+	@Data
+	public static class CancellationPolicy {
+		private Double freeCancellationWindowHours;
+		private int penaltyPercent;
 	}
 	
 }

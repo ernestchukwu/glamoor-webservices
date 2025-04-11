@@ -7,15 +7,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
@@ -45,90 +37,34 @@ public class BookingController {
 	
 	private final BookingService bookingService;
 	private final PaymentsAPIService paymentsAPIService;
-	private final MessageService messageService;
 	
 	public BookingController(BookingService bookingService,
-                             PaymentsAPIService paymentsAPIService,
-                             MessageService messageService) {
+                             PaymentsAPIService paymentsAPIService) {
 		
 		this.bookingService = bookingService;
         this.paymentsAPIService = paymentsAPIService;
-        this.messageService = messageService;
     }
 
-	@GetMapping("/customer/{customerId}")
+	@GetMapping
 	public ResponseEntity<List<BookingSummaryResponse>> getBookings(
-			@PathVariable @NotBlank(message = "customerId must be a string.") String customerId, 
+			@RequestHeader(value = "X-User-Id", required = false) String id,
 			@RequestParam(required = false, defaultValue = "0") @PositiveOrZero(message = "offset must be at least 0.") int offset,
 			@RequestParam(required = false) BookingStatus status,
 			@RequestParam(required = false, defaultValue = "false") boolean homeScreenView) {
 
-		List<Booking> bookings = bookingService.getBookings(offset, customerId, status, homeScreenView);
+		List<Booking> bookings = bookingService.getBookings(offset, id, status, homeScreenView);
 		return ResponseEntity.ok(bookings.stream().map(BookingMapper::toBookingSummaryResponse).toList());
 	}
 	
 	@GetMapping("/{bookingId}")
 	public ResponseEntity<BookingDetailedResponse> getBooking(
-			@RequestParam @NotBlank(message = "customerId must be a string.") String customerId,
+			@RequestHeader(value = "X-User-Id", required = false) String id,
 			@PathVariable @NotBlank(message = "bookingId must be a string.") String bookingId) {
-		Booking booking = bookingService.getBooking(customerId, bookingId);
+
+		Booking booking = bookingService.getBooking(id, bookingId);
 		return ResponseEntity.ok(BookingMapper.toBookingDetailedResponse(booking));
 	}
-	
-	@GetMapping("/{customerId}/{bookingId}/messages")
-	public ResponseEntity<List<MessageResponse>> getBookingMessages(
-			@PathVariable @NotBlank(message = "customerId must be a string.") String customerId, 
-			@PathVariable @NotBlank(message = "bookingId must be a string.") String bookingId,
-			@RequestParam @PositiveOrZero(message = "offset must be at least 0.") int offset) {
 
-		Booking booking = bookingService.getBooking(customerId, bookingId);
-		if (booking == null) {
-			throw new IllegalArgumentException();
-		}
-		List<Message> messages = messageService.getBookingMessages(bookingId, offset);
-
-		return ResponseEntity.ok(messages.stream().map(MessageMapper::mapToMessageResponse).toList());
-	}
-	
-	@PutMapping("/{customerId}/{bookingId}/seen")
-	public ResponseEntity<String> markMessagesAsSeen(
-			@PathVariable String customerId,
-			@PathVariable String bookingId) {
-
-		try {
-			messageService.markMessagesAsSeen(customerId, bookingId);
-	        
-	        return ResponseEntity.ok("");
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("There was a problem updatings messages as seen.");
-		}
-    }
-	
-	@PostMapping("/{bookingId}/messages")
-	public ResponseEntity<?> sendMessage(
-			@PathVariable @NotBlank(message = "bookingId must be a string.") String bookingId,
-			@RequestParam(required = false) MultipartFile image,
-			@RequestBody @Valid MessageRequest messageRequest){
-
-		Booking booking = bookingService.getBooking(bookingId).orElseThrow(
-				() -> new EntityNotFoundException(bookingId, EntityType.BOOKING)
-		);
-		Message message = MessageMapper.mapToMessage(messageRequest);
-		message.setBooking(booking.getId());
-		LocalDateTime time = messageService.addMessage(message);
-
-		try {
-			if (image != null && !image.isEmpty()) {
-				messageService.saveImage(image, message.getId());
-				message.setContainsImage(true);
-			}
-		} catch (IOException e) {
-			messageService.deleteMessage(message.getId());
-			throw new RuntimeException("There was a problem saving booking message image.", e);
-		}
-		return ResponseEntity.ok(time);
-	}
-	
 	@PatchMapping("/{bookingId}/cancel")
     public ResponseEntity<String> cancelBooking(
             @PathVariable @NotBlank(message = "bookingId must be a string.") String bookingId,

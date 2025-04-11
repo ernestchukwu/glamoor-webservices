@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import uk.co.glamoor.bookings.config.AppConfig;
+import uk.co.glamoor.bookings.config.BookingsAppConfig;
 import uk.co.glamoor.bookings.dto.request.BookingRequest;
 import uk.co.glamoor.bookings.enums.BookingStatus;
 import uk.co.glamoor.bookings.exception.EntityNotFoundException;
@@ -37,7 +37,7 @@ public class BookingService {
 	private final CustomersAPIService customersAPIService;
 	private final StylistsAPIService stylistsAPIService;
 	private final MessagingService messagingService;
-	private final AppConfig appConfig;
+	private final BookingsAppConfig bookingsAppConfig;
 	
 	public BookingService(BookingRepository bookingRepository, 
 			BookingCancellationRepository bookingCancellationRepository,
@@ -47,7 +47,7 @@ public class BookingService {
 			StylistsAPIService StylistsAPIService,
 			CustomersAPIService customersAPIService,
 			MessagingService messagingService,
-			AppConfig appConfig) {
+			BookingsAppConfig bookingsAppConfig) {
 		
 		this.bookingRepository = bookingRepository;
 		this.bookingCancellationRepository = bookingCancellationRepository;
@@ -57,14 +57,14 @@ public class BookingService {
 		this.customersAPIService = customersAPIService;
 		this.stylistsAPIService = StylistsAPIService;
 		this.messagingService = messagingService;
-		this.appConfig = appConfig;
+		this.bookingsAppConfig = bookingsAppConfig;
 		
 	}
 	
 	public List<Booking> getBookings(int offset, String customerId, BookingStatus status, boolean homeScreenView) {
 		
-		int batchSize = homeScreenView ? appConfig.getBookingsRequestBatchSizeForHomeScreen() :
-				appConfig.getBookingsRequestBatchSize();
+		int batchSize = homeScreenView ? bookingsAppConfig.getBookingsRequestBatchSizeForHomeScreen() :
+				bookingsAppConfig.getBookingsRequestBatchSize();
 		Pageable pageable = PageRequest.of(homeScreenView ? 0 : offset, batchSize);
 
 		return status == null ?
@@ -76,7 +76,8 @@ public class BookingService {
 	
 	public Booking getBooking(String customerId, String bookingId) {
 		
-		return bookingRepository.findByCustomerIdAndId(customerId, bookingId);
+		return bookingRepository.findByCustomerIdAndId(customerId, bookingId)
+				.orElseThrow(() -> new EntityNotFoundException(bookingId, EntityType.BOOKING));
 		
 	}
 
@@ -91,16 +92,15 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException(bookingId, EntityType.BOOKING));
 
-        if (Duration.between(Instant.now(), booking.getTimeUtc().toInstant(ZoneOffset.UTC)).toMinutes() < booking.getStylist().getBookingCancellationTimeLimitMinutes()) {
-        	LocalDateTime windowEnd = booking.getTimeUtc().minusMinutes(booking.getStylist().getBookingCancellationTimeLimitMinutes());
-        	throw new IllegalArgumentException("Booking can no longer be canceled. Cancellation window closed at " + windowEnd);
-        }
+		if (Instant.now().isAfter(booking.getTime())) {
+			throw new IllegalArgumentException("Booking can no longer be canceled as booking time is in the past.");
+		}
 
 		if (!booking.getCustomer().getId().equals(customerId)) {
             throw new IllegalArgumentException("Customer is not authorized to cancel this booking.");
         }
         
-        if (BookingStatus.CANCELED.equals(booking.getStatus())) {
+        if (BookingStatus.CANCELED_BY_CUSTOMER.equals(booking.getStatus())) {
             throw new IllegalArgumentException("Booking is already canceled.");
         }
         
@@ -115,7 +115,7 @@ public class BookingService {
         bookingCancellation.setBookingCancellationReason(bookingCancellationReason);
         bookingCancellation.setOtherReason(reasonDetails);
         
-        booking.setStatus(BookingStatus.CANCELED);
+        booking.setStatus(BookingStatus.CANCELED_BY_CUSTOMER);
                         
         availabilityService.unbookSlot(booking.getStylist().getId(), 
         		booking.getServiceProvider().getId(), booking.getTimeUtc(), booking.getTotalDuration(), timeZone);
@@ -192,8 +192,7 @@ public class BookingService {
 						booking.setStylist(BookingMapper.toBookingStylist(stylist));
 						booking.setCurrency(stylist.getCurrency());
 						booking.setTimeZone(bookingRequest.getTimeZone());
-						booking.setTime(bookingRequest.getTime().atZone(
-								ZoneId.of(bookingRequest.getTimeZone())).toInstant());
+						booking.setTime(bookingRequest.getTime());
 						booking.setBookingReference(generateReference());
 						booking.setAddress(bookingRequest.getHomeServiceSpecificationId() != null ?
 								BookingMapper.toAddress(bookingRequest.getAddress()) :
@@ -310,21 +309,28 @@ public class BookingService {
 
 	private Mono<Booking> processServiceSpecifications(Booking booking, BookingRequest bookingRequest, Stylist stylist) {
 		return Flux.fromIterable(bookingRequest.getServiceSpecifications())
-				.flatMap(spec -> processStylistServiceSpecification(spec, stylist))
+				.flatMap(spec -> processStylistServiceSpecification(spec, stylist, bookingRequest.getTime()))
 				.collectList()
 				.doOnNext(booking::setServiceSpecifications)
 				.thenReturn(booking);
 	}
 
 	private Mono<Booking.StylistServiceSpecification> processStylistServiceSpecification(
-			BookingRequest.StylistServiceSpecification spec, Stylist stylist) {
+			BookingRequest.StylistServiceSpecification spec, Stylist stylist, Instant bookingRequestTime) {
 
 		return findServiceSpecification(stylist, spec.getId())
 				.flatMap(stylistServiceSpec -> {
+					if (Instant.now().plusSeconds(
+							stylistServiceSpec.getMinAdvanceBookingTimeMinutes() * 60).isAfter(bookingRequestTime)){
+						throw new IllegalArgumentException(stylist.getDisplayName() + " requires at least " +
+								stylistServiceSpec.getMinAdvanceBookingTimeMinutes()+
+								"min advance booking for " + stylistServiceSpec.getService().getName());
+					}
 					Booking.StylistServiceSpecification serviceSpecification = new Booking.StylistServiceSpecification();
 					serviceSpecification.setId(spec.getId());
 					serviceSpecification.setHomeServiceAdditionalPrice(stylistServiceSpec.getHomeServiceAdditionalPrice());
 					serviceSpecification.setDepositPaymentPercent(stylistServiceSpec.getDepositPaymentPercent());
+					serviceSpecification.setImage(stylistServiceSpec.getImage());
 
 					return validateServiceOption(stylistServiceSpec, spec.getOptionId())
 							.doOnNext(option -> {

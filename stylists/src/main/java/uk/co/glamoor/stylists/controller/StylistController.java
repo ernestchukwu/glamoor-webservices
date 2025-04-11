@@ -227,9 +227,8 @@ public class StylistController {
 //		List<GlamoorService> services = glamoorServiceRepository.findAll();
 
 		List<Stylist> stylists = stylistRepository.findAll();
-
 		for(Stylist stylist : stylists) {
-			stylist.setStatus(Status.ACTIVE);
+			stylist.setMinAdvanceBookingTimeMinutes(faker.random().nextInt(10, 30));
 		}
 		stylistRepository.saveAll(stylists);
 		return Mono.justOrEmpty("");

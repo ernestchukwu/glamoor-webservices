@@ -37,7 +37,7 @@ public class StylistService {
     }
 	
 
-	public String addServiceProvider(String stylistId, ServiceProvider serviceProvider) {
+	public void addServiceProvider(String stylistId, ServiceProvider serviceProvider) {
 		Stylist stylist = stylistRepository.findById(stylistId).orElseThrow(
 				() -> new EntityNotFoundException(stylistId, EntityType.STYLIST));
 		
@@ -46,7 +46,6 @@ public class StylistService {
 		stylist.getServiceProviders().add(serviceProvider);
 		stylistRepository.save(stylist);
 		
-		return serviceProvider.getId();
 	}
 	
 	public void updateServiceProvider(String stylistId, ServiceProvider serviceProvider) {
@@ -84,7 +83,7 @@ public class StylistService {
 		stylistRepository.save(stylist);
 	}
 	
-	public String addServiceSpecification(String stylistId, StylistServiceSpecification serviceSpecification) {
+	public void addServiceSpecification(String stylistId, StylistServiceSpecification serviceSpecification) {
 		Stylist stylist = stylistRepository.findById(stylistId).orElseThrow(
 				() -> new EntityNotFoundException(stylistId, EntityType.STYLIST));
 		
@@ -92,8 +91,7 @@ public class StylistService {
 		
 		stylist.getServiceSpecifications().add(serviceSpecification);
 		stylistRepository.save(stylist);
-		
-		return serviceSpecification.getId();
+
 	}
 	
 	public void updateServiceSpecification(String stylistId,
@@ -133,7 +131,7 @@ public class StylistService {
 		stylistRepository.save(stylist);
 	}
 	
-	public String addHomeServiceSpecification(String stylistId, HomeServiceSpecification homeServiceSpecification) {
+	public void addHomeServiceSpecification(String stylistId, HomeServiceSpecification homeServiceSpecification) {
 		Stylist stylist = stylistRepository.findById(stylistId).orElseThrow(
 				() -> new EntityNotFoundException(stylistId, EntityType.STYLIST));
 		
@@ -142,7 +140,6 @@ public class StylistService {
 		stylist.getHomeServiceSpecifications().add(homeServiceSpecification);
 		stylistRepository.save(stylist);
 		
-		return homeServiceSpecification.getId();
 	}
 	
 	public void updateHomeServiceSpecification(String stylistId,
@@ -219,7 +216,7 @@ public class StylistService {
     	anonymous.setAddress(null);
     	anonymous.setPhone(null);
     	anonymous.setVat(null);
-    	anonymous.setBookingCancellationTimeLimitMinutes(null);
+    	anonymous.setMinAdvanceBookingTimeMinutes(null);
     	
     	anonymous.setHomeServiceSpecifications(new ArrayList<>());
     	anonymous.setServiceProviders(new ArrayList<>());
@@ -236,9 +233,9 @@ public class StylistService {
 		if (update.getAddress() != null) stylist.setAddress(update.getAddress());
 		if (update.getPhone() != null) stylist.setPhone(update.getPhone());
 		if (update.getVat() != null) stylist.setVat(update.getVat());
-		if (update.getBookingCancellationTimeLimitMinutes() != null) 
-			stylist.setBookingCancellationTimeLimitMinutes(
-				update.getBookingCancellationTimeLimitMinutes());
+		if (update.getMinAdvanceBookingTimeMinutes() != null)
+			stylist.setMinAdvanceBookingTimeMinutes(
+				update.getMinAdvanceBookingTimeMinutes());
 		
 		if (update.getHomeServiceSpecifications() != null && !update.getHomeServiceSpecifications().isEmpty())
 			stylist.setHomeServiceSpecifications(update.getHomeServiceSpecifications());

@@ -1,5 +1,6 @@
 package uk.co.glamoor.bookings.dto.request;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,15 +36,14 @@ public class BookingRequest {
     private Address address;
 
     @Valid
-    private Location location;
+    private List<Double> location = new ArrayList<>();
 
     @Valid
     @NotNull(message = "Payment option is required")
     private PaymentOption paymentOption;
 
     @NotNull(message = "Date and time cannot be null")
-    @FutureOrPresent(message = "Date and time must be in the future or present")
-    private LocalDateTime time;
+    private Instant time;
 
     @NotBlank(message = "Time zone cannot be blank")
     @Size(min = 1, max = 100, message = "Time zone must be between 1 and 100 characters")
@@ -90,13 +90,5 @@ public class BookingRequest {
 
         @Size(max = 200, message = "Address line 2 cannot exceed 200 characters")
         private String address2;
-    }
-
-    @Data
-    public static class Location {
-        private String type = "Point";
-
-        @Size(min = 2, max = 2, message = "Coordinates must contain exactly 2 values (latitude and longitude)")
-        private List<Double> coordinates = new ArrayList<>();
     }
 }

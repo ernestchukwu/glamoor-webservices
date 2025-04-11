@@ -28,11 +28,32 @@ public class Stylist {
     private Phone phone;
     private Currency currency;
     private Double vat = 0.0;
-    private Integer bookingCancellationTimeLimitMinutes;
-	private Integer bookingTimeLimitMinutes;
+    private CancellationPolicy cancellationPolicy;
+    private Integer minAdvanceBookingTimeMinutes;
+    private String banner;
     
     private List<HomeServiceSpecification> homeServiceSpecifications = new ArrayList<>();
     private List<ServiceProvider> serviceProviders = new ArrayList<>();
     private List<StylistServiceSpecification> serviceSpecifications = new ArrayList<>();
+
+    private String fullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getDisplayName() {
+        if (brand != null && !brand.trim().isEmpty()) {
+            return brand;
+        }
+        if (!fullName().trim().isEmpty()) {
+            return fullName();
+        }
+        return alias;
+    }
+
+    @Data
+    public static class CancellationPolicy {
+        private Double freeCancellationWindowHours;
+        private int penaltyPercent;
+    }
 
 }

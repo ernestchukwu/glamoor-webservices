@@ -16,6 +16,7 @@ public class StylistServiceSpecification extends ServiceSpecification {
 	
 	private String id;
 	private GlamoorService service;
+	private Integer minAdvanceBookingTimeMinutes;
 	private List<AddonSpecification> addonSpecifications = new ArrayList<>();
 
 }

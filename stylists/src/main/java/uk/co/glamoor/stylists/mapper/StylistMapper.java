@@ -65,9 +65,6 @@ public class StylistMapper {
 		stylist.setAddress(dto.getAddress());
 		stylist.setLocation(dto.getLocation());
 		stylist.setBanner(dto.getBanner());
-		stylist.setBookingCancellationTimeLimitMinutes(dto.getBookingCancellationTimeLimitMinutes());
-		stylist.setBookingTimeLimitMinutes(dto.getBookingTimeLimitMinutes());
-//		stylist.setServiceSpecifications(dto.getServiceSpecifications());
 		stylist.setServiceProviders(dto.getServiceProviders());
 		stylist.setFavourite(dto.getFavourite());
 
@@ -113,8 +110,6 @@ public class StylistMapper {
 		dto.setUid(stylist.getUid());
 		dto.setAccountProvider(stylist.getAccountProvider());
 		dto.setTerms(stylist.getTerms());
-		dto.setBookingCancellationTimeLimitMinutes(stylist.getBookingCancellationTimeLimitMinutes());
-		dto.setBookingTimeLimitMinutes(stylist.getBookingTimeLimitMinutes());
 		dto.setServiceProviders(stylist.getServiceProviders());
 		dto.setHomeServiceSpecifications(stylist.getHomeServiceSpecifications());
 		
@@ -138,9 +133,11 @@ public class StylistMapper {
 	    bookingsServiceStylistResponse.setPhone(toBookingsServiceStylistResponsePhone(stylist.getPhone()));
 	    bookingsServiceStylistResponse.setVat(stylist.getVat());
 		bookingsServiceStylistResponse.setCurrency(toBookingsServiceStylistResponseCurrency(stylist.getCurrency()));
-	    bookingsServiceStylistResponse.setBookingCancellationTimeLimitMinutes(
-	    		stylist.getBookingCancellationTimeLimitMinutes());
-		bookingsServiceStylistResponse.setBookingTimeLimitMinutes(stylist.getBookingTimeLimitMinutes());
+	    bookingsServiceStylistResponse.setCancellationPolicy(
+	    		stylist.getCancellationPolicy());
+		bookingsServiceStylistResponse.setMinAdvanceBookingTimeMinutes(
+				stylist.getMinAdvanceBookingTimeMinutes());
+		bookingsServiceStylistResponse.setBanner(stylist.getBanner());
 
 	    return bookingsServiceStylistResponse;
 	}
@@ -237,10 +234,14 @@ public class StylistMapper {
         if (update.getBanner() != null) {
             stylist.setBanner(update.getBanner());
         }
-        if (update.getBookingCancellationTimeLimitMinutes() != null) {
-            stylist.setBookingCancellationTimeLimitMinutes(
-            		update.getBookingCancellationTimeLimitMinutes());
+        if (update.getCancellationPolicy() != null) {
+            stylist.setCancellationPolicy(
+            		update.getCancellationPolicy());
         }
+		if (update.getMinAdvanceBookingTimeMinutes() != null) {
+			stylist.setMinAdvanceBookingTimeMinutes(
+					update.getMinAdvanceBookingTimeMinutes());
+		}
         stylist.setTimeUpdated(LocalDateTime.now());
         
         return stylist;

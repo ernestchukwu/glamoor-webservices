@@ -23,8 +23,8 @@ public class StylistResponse {
     private Phone phone;
     private Currency currency;
     private Double vat = 0.0;
-    private Integer bookingCancellationTimeLimitMinutes;
-    private Integer bookingTimeLimitMinutes;
+    private Integer minAdvanceBookingTimeMinutes;
+    private String banner;
 
     @Data
     public static class Address {

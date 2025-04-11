@@ -9,6 +9,7 @@ import lombok.Data;
 import uk.co.glamoor.bookings.dto.request.PaymentIntentRequest;
 import uk.co.glamoor.bookings.enums.BookingStatus;
 import uk.co.glamoor.bookings.enums.PaymentOption;
+import uk.co.glamoor.bookings.enums.PaymentStatus;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -43,11 +44,15 @@ public class Booking {
     private Instant time;
     private String timeZone;
 
+    private int customerUnreadMessagesCount = 0;
+    private int stylistUnreadMessagesCount = 0;
+
     private LocalDateTime timeCreated = LocalDateTime.now();
 
     private String bookingReference;
 
     private BookingStatus status = BookingStatus.PENDING;
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
     private Currency currency;
     private List<Payment> payments = new ArrayList<>();
@@ -57,6 +62,14 @@ public class Booking {
     private Location location;
     
     private String notes;
+
+    private CancellationPolicy cancellationPolicy;
+
+    @Data
+    public static class CancellationPolicy {
+        private Double freeCancellationWindowHours;
+        private int penaltyPercent;
+    }
 
     public LocalDateTime getTimeUtc() {
         return time.atZone(ZoneId.of(timeZone)).toLocalDateTime();
@@ -160,10 +173,10 @@ public class Booking {
         private String alias;
         private String brand;
         private String logo;
+        private String banner;
         private String email;
         private Phone phone;
         private Double vat = 0.0;
-        private Integer bookingCancellationTimeLimitMinutes;
 
         private String fullName() {
             return firstName + " " + lastName;

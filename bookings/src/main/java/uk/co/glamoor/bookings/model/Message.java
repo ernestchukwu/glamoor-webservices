@@ -1,13 +1,15 @@
 package uk.co.glamoor.bookings.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Document(collection = "messages")
 public class Message {
 
+    @Id
 	private String id;
 
 	private String booking;
@@ -16,7 +18,8 @@ public class Message {
 
     private String message;
 
-    private LocalDateTime time;
+    private Instant time;
+    private String timeZone;
 
     private boolean containsImage = false;
 

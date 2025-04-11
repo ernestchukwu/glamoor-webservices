@@ -7,7 +7,7 @@ import java.util.*;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import uk.co.glamoor.bookings.config.AppConfig;
+import uk.co.glamoor.bookings.config.BookingsAppConfig;
 import uk.co.glamoor.bookings.dto.request.TimeSlot;
 import uk.co.glamoor.bookings.dto.response.TimeSlotResponse;
 import uk.co.glamoor.bookings.exception.NoAvailableDateException;
@@ -24,16 +24,16 @@ public class AvailabilityService {
 	private final AvailabilityRepository availabilityRepository;
 	private final AvailabilityCreator availabilityCreator;
 	private final MessagingService messagingService;
-	private final AppConfig appConfig;
+	private final BookingsAppConfig bookingsAppConfig;
 		
 	public AvailabilityService(AvailabilityRepository availabilityRepository, AvailabilityCreator availabilityCreator,
                                @Lazy MessagingService messagingService,
-                               AppConfig appConfig) {
+                               BookingsAppConfig bookingsAppConfig) {
 		
 		this.availabilityRepository = availabilityRepository;
         this.availabilityCreator = availabilityCreator;
         this.messagingService = messagingService;
-        this.appConfig = appConfig;
+        this.bookingsAppConfig = bookingsAppConfig;
 	}
 
 	public List<TimeSlotResponse> getServiceProvidersDailyAvailabilities(
@@ -92,7 +92,7 @@ public class AvailabilityService {
 
 		LocalDate current = startDate;
 
-		while (current.isBefore(startDate.plusDays(appConfig.getFutureBookingDaysExtent()))) {
+		while (current.isBefore(startDate.plusDays(bookingsAppConfig.getFutureBookingDaysExtent()))) {
 			LocalDate startOfMonth = current.equals(startDate) ? startDate : current.withDayOfMonth(1);
 			LocalDate endOfMonth = current.withDayOfMonth(current.lengthOfMonth());
 
@@ -287,7 +287,7 @@ public class AvailabilityService {
 					.filter(slot -> slot.getStartTime()
 							.equals(slotTime) && slot.getEndTime()
 							.equals(slotTime.plusMinutes(duration))).toList().isEmpty()) {
-				availability.escrowSlot(slotTime, duration, appConfig.getTimeSlotEscrowDurationSeconds());
+				availability.escrowSlot(slotTime, duration, bookingsAppConfig.getTimeSlotEscrowDurationSeconds());
 				break;
 			}
 		}
@@ -319,7 +319,7 @@ public class AvailabilityService {
 					.filter(slot -> slot.getStatus() == Availability.Status.ESCROW && slot.getStartTime()
 							.equals(slotTime) && slot.getEndTime()
 							.equals(slotTime.plusMinutes(duration))).toList().isEmpty()) {
-				availability.pulseEscrowedSlot(slotTime, duration, appConfig.getTimeSlotEscrowDurationSeconds());
+				availability.pulseEscrowedSlot(slotTime, duration, bookingsAppConfig.getTimeSlotEscrowDurationSeconds());
 				break;
 			}
 		}

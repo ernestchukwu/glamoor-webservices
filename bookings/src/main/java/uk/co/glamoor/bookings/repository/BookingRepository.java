@@ -19,13 +19,8 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
 	Page<Booking> findByCustomerIdOrderByTimeDesc(String customerId, Pageable pageable);
 
-	Booking findByCustomerIdAndId(String customerId, String bookingId);
-	
-	
-	Optional<Booking> findById(String id);
-	
-	boolean existsById(String bookingId);
-	
+	Optional<Booking> findByCustomerIdAndId(String customerId, String bookingId);
+
 	boolean existsByIdAndCustomerId(String bookingId, String customerId);
 	
 }

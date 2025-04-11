@@ -6,6 +6,7 @@ import uk.co.glamoor.bookings.dto.response.BookingDetailedResponse;
 import uk.co.glamoor.bookings.dto.response.BookingSummaryResponse;
 import uk.co.glamoor.bookings.model.*;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class BookingMapper {
@@ -24,6 +25,7 @@ public class BookingMapper {
         message.setTimeZone(booking.getTimeZone());
         message.setReferenceNumber(booking.getBookingReference());
         message.setAddress(booking.getAddressString());
+        message.setCancellationPolicy(booking.getCancellationPolicy());
 
         for (Booking.StylistServiceSpecification specification : booking.getServiceSpecifications()) {
             BookingMessage.StylistServiceSpecification spec = new BookingMessage.StylistServiceSpecification();
@@ -51,12 +53,14 @@ public class BookingMapper {
         BookingDetailedResponse response = new BookingDetailedResponse();
 
         response.setId(booking.getId());
+        response.setStylistBanner(booking.getStylist().getBanner());
+        response.setStylistId(booking.getStylist().getId());
         response.setStylistName(booking.getStylist().getFirstName() + " " + booking.getStylist().getLastName());
         response.setStylistLogo(booking.getStylist().getLogo());
-        response.setStylistBookingCancellationTime(
-                booking.getStylist().getBookingCancellationTimeLimitMinutes() != null ?
-                        booking.getStylist().getBookingCancellationTimeLimitMinutes() : null
-        );
+        response.setServiceProviderName(booking.getServiceProvider().getFirstName() + " " + booking.getServiceProvider().getLastName());
+        response.setServiceProviderProfilePicture(booking.getServiceProvider().getProfilePicture());
+
+        response.setUnreadMessagesCount(booking.getCustomerUnreadMessagesCount());
         response.setIsoTime(booking.getTime() != null ? booking.getTime().toString() : null);
         response.setStatus(booking.getStatus());
         response.setServiceSpecifications(
@@ -65,12 +69,18 @@ public class BookingMapper {
                         .collect(Collectors.toList())
         );
         response.setBookingReference(booking.getBookingReference());
-        response.setAddress(booking.getAddressString());
+        response.setAddress(booking.getAddress());
         response.setHomeService(booking.isHomeService());
         response.setHasBeenReviewed(booking.isHasBeenReviewed());
+        response.setPaymentStatus(booking.getPaymentStatus());
         response.setCurrency(booking.getCurrency() != null ? booking.getCurrency().getSymbol() : null);
-        response.setDiscount(booking.getDiscount());
+        if (booking.getDiscount() != null) {
+            response.setDiscountAmount(booking.getDiscount().getAmount());
+            response.setDiscountType(booking.getDiscount().getDiscountType().toString());
+        }
+        response.setCancellationPolicy(booking.getCancellationPolicy());
         response.setNotes(booking.getNotes());
+        response.setLocation(booking.getLocation().getCoordinates());
         response.setHomeServiceSpecification(
                 booking.getHomeServiceSpecification() != null ?
                         convertToHomeServiceSpecificationResponse(booking.getHomeServiceSpecification()) : null
@@ -84,6 +94,7 @@ public class BookingMapper {
         response.setName(serviceSpec.getService().getName());
         response.setPrice(serviceSpec.getOption().getPrice());
         response.setDuration(serviceSpec.getOption().getDurationMinutes());
+        response.setImage(serviceSpec.getImage());
         return response;
     }
 
@@ -163,16 +174,15 @@ public class BookingMapper {
         bookingStylist.setAlias(stylist.getAlias());
         bookingStylist.setBrand(stylist.getBrand());
         bookingStylist.setLogo(stylist.getLogo());
+        bookingStylist.setBanner(stylist.getBanner());
         bookingStylist.setVat(stylist.getVat());
-        bookingStylist.setBookingCancellationTimeLimitMinutes(stylist.getBookingCancellationTimeLimitMinutes());
 
         return bookingStylist;
     }
 
-    public static Location toLocation(BookingRequest.Location bookingRequestLocation) {
+    public static Location toLocation(List<Double> bookingRequestLocation) {
         Location location = new Location();
-        location.setCoordinates(bookingRequestLocation.getCoordinates());
-        location.setType(bookingRequestLocation.getType());
+        location.setCoordinates(bookingRequestLocation);
         return location;
     }
 
@@ -183,6 +193,7 @@ public class BookingMapper {
         response.setIsoTime(booking.getTime().toString());
         response.setStylistLogo(booking.getStylist().getLogo());
         response.setStatus(booking.getStatus());
+        response.setUnreadMessagesCount(booking.getCustomerUnreadMessagesCount());
         response.setServiceNames(booking.getServiceSpecifications().stream()
                 .map(spec -> spec.getService().getName())
                 .collect(Collectors.toList()));

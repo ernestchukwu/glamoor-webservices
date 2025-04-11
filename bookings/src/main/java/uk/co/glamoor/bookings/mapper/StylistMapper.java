@@ -21,8 +21,8 @@ public class StylistMapper {
         stylist.setPhone(toPhone(stylistResponse.getPhone()));
         stylist.setCurrency(toCurrency(stylistResponse.getCurrency()));
         stylist.setVat(stylistResponse.getVat());
-        stylist.setBookingCancellationTimeLimitMinutes(stylistResponse.getBookingCancellationTimeLimitMinutes());
-        stylist.setBookingTimeLimitMinutes(stylistResponse.getBookingTimeLimitMinutes());
+        stylist.setMinAdvanceBookingTimeMinutes(stylistResponse.getMinAdvanceBookingTimeMinutes());
+        stylist.setBanner(stylistResponse.getBanner());
 
         return stylist;
     }

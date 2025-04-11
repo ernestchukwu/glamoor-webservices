@@ -1,6 +1,7 @@
 package uk.co.glamoor.stylists.dto.response.bookings;
 
 import lombok.Data;
+import uk.co.glamoor.stylists.model.Stylist;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,9 @@ public class BookingsServiceStylistResponse {
     private Phone phone;
 	private Currency currency;
     private Double vat;
-    private Integer bookingCancellationTimeLimitMinutes;
-	private Integer bookingTimeLimitMinutes;
+	private Stylist.CancellationPolicy cancellationPolicy;
+	private Integer minAdvanceBookingTimeMinutes;
+	private String banner;
 
 	@Data
 	public static class Address {

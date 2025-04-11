@@ -17,6 +17,7 @@ public class StylistServiceSpecification extends ServiceSpecification {
 	@Size(max = 50, message = "StylistServiceSpecification ID must not exceed 50 characters")
 	private String id;
 	private @Valid GlamoorService service;
+	private Integer minAdvanceBookingTimeMinutes;
 	private List<@Valid AddonSpecification> addonSpecifications = new ArrayList<>();
 
 

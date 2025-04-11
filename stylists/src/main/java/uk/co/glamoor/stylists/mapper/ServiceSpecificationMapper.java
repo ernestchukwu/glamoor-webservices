@@ -95,6 +95,7 @@ public class ServiceSpecificationMapper {
 
         bookingsStylistServiceSpecification.setId(stylistServiceSpecification.getId());
         bookingsStylistServiceSpecification.setService(toBookingsService(stylistServiceSpecification.getService()));
+        bookingsStylistServiceSpecification.setMinAdvanceBookingTimeMinutes(stylistServiceSpecification.getMinAdvanceBookingTimeMinutes());
         bookingsStylistServiceSpecification.setAddonSpecifications(stylistServiceSpecification.getAddonSpecifications()
                 .stream().map(ServiceSpecificationMapper::toAddonSpecification).toList());
         bookingsStylistServiceSpecification.setHomeServiceAvailable(stylistServiceSpecification.getHomeServiceAvailable());
